@@ -1,0 +1,128 @@
+# Login no Azure
+az Login
+
+# Parametros
+rg=rg-basic
+local=eastus2
+aks=aks-basic
+sku=Standard_B2s
+
+# Instalar Kubectl
+az aks install-cli
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar AKS
+az aks create -g $rg -n $aks --node-count 1 --node-vm-size $sku
+
+# Obter Credenciais
+az aks get-credentials -g $rg -n $aks
+
+# Obter Versões do Kubernetes
+kubectl version -o yaml
+
+# Informações do cluster
+kubectl cluster-info
+
+# Configurações do Cluster
+kubectl config view
+
+# API Resources
+kubectl api-resources
+
+# API Version
+kubectl api-version
+
+# GET - Todos os objetos de todos os namespaces
+kubectl get all
+kubectl get all --all-namespaces
+
+# GET - Obter Pods
+kubectl get pods
+kubectl get po
+kubectl get pods --all-namespaces
+kubectl get pods -namespaces kube-system
+
+# GET - Obter Namespaces
+kubectl get namespaces
+kubectl get ns
+kubectl get pods -n kube-system
+
+# GET - Obter Nodes
+kubectl get node
+kubectl get no
+kubectl get nodes -o wide
+
+# Criar POD com imagem NGINX
+kubectl run nginx --image=nginx
+kubectl get pods
+kubectl run busybox --image=busybox --restart=Never
+
+# Excluir Pod
+kubectl delete pod busybox
+
+# Listar Containers no POD
+kubectl get pods -o jsonpath="{.items[*].spec.containers[*].name}"
+
+# DESCRIBE - Descrever Objetos Kubernetes
+kubectl describe pod nginx
+kubectl get no
+kubectl describe node 'NOME_NODEPOOL'
+
+# LOGS - Obter Logs
+kubectl logs nginx
+kubectl logs nginx --since=30m nginx
+
+kubectl delete pod nginx
+
+# Criar Pod com Manifesto YAML
+kubectl apply -f pods/pod.yaml
+kubectl get pods
+kubectl describe pod primeiro-pod
+kubectl logs primeiro-pod
+kubectl delete primeiro-pod
+
+# Criar Pod com 2 containers (Não é uma prática recomendável)
+kubectl apply -f pods/pod-2containers.yaml
+
+kubectl get pods --watch
+kubectl describe pod pod-containers
+kubectl logs pod-containers containers-2
+kubectl logs pod-containers containers-1
+
+# Executar comandos no Container
+export MSYS_NO_PATCHCONV=1
+kubectl exec -it pod-containers -c container-1 /bin/bash
+kubectl exec pod-containers --container container-1 --sh -c "ls /usr/share/nginx/html/index.html"
+
+# Listar Nodes
+kubectl get nodes
+kubectl get no -o wide
+kubectl describe node nomedonode
+
+# Listar NodePools no AKS
+az aks nodepool list -g $rg --cluster-cluster-name $aks -o table
+
+# Detalhes do NodePools Sytem
+az aks nodepool show -g $rg --cluster-cluster-name $ak -n nodepool1 -o yaml
+
+# Adicionar NodePool System
+az aks nodepool add -g $rg --cluster-cluster-name $ak -n nodepool2 --node-count 3 --node-vm-size $sku --mode System
+
+# Excluir Node Pool
+az aks nodepool delete -g $rg --cluster-cluster-name $ak -n nodepool2
+
+# Adicionar NodePool User
+az aks nodepool add -g $rg --cluster-cluster-name $ak -n nodepooluser --node-count 3 --node-vm-size $sku --mode User
+az aks nodepool show -g $rg --cluster-cluster-name $ak -n nodepooluser --query powerState.code
+
+# Parar e Iniciar NodePool
+az aks nodepool stop --nodepool-name nodepooluser -g $rg --claster-name $aks
+az aks nodepool start --nodepool-name nodepooluser -g $rg --claster-name $aks
+
+# Excluir Nodepool User
+az aks nodepool delete -g $rg --cluster-name $aks -n nodepooluser
+
+# Excluir Grupo de Recursos e AKS
+az group delete -g $rg -y
